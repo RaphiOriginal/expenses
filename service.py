@@ -9,10 +9,10 @@ class ExpensesService(object):
         return 'Hello World'
 
 if __name__ == '__main__':
-    from saplugin import SAEnginePlugin
+    from lib.plugin.saplugin import SAEnginePlugin
     SAEnginePlugin(cherrypy.engine, 'sqlite:///database.sqlite').subscribe()
 
-    from satool import SATool
+    from lib.plugin.satool import SATool
     cherrypy.tools.db = SATool()
 
     conf = {
