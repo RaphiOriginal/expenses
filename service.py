@@ -30,7 +30,7 @@ class ExpensesService(object):
         user = db.query(User).filter_by(email=email).first()
         hashed_password = hash_password(user.salt, password)
         if hashed_password == user.password_hash:
-            return "Authentificated"
+            return "Authenticated"
         else:
             return "Wroooong!"
 
