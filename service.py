@@ -12,9 +12,13 @@ def hash_password(salt, password):
 def authenticate():
     print("I'm called now")
 
+class Service(object):
+    @cherrypy.expose
+    def index(self):
+        return "hi"
+
 @cherrypy.expose
-class ExpensesService(object):
-    
+class Account(object):
     @cherrypy.tools.accept(media='text/plain')
     def POST(self, email, password):
         db = cherrypy.request.db
@@ -43,6 +47,9 @@ if __name__ == '__main__':
 
     conf = {
             '/': {
+                'tools.sessions.on': True,
+                },
+            '/account': {
                 'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
                 'tools.sessions.on': True,
                 'tools.response_headers.on': True,
@@ -50,4 +57,7 @@ if __name__ == '__main__':
                 'tools.db.on': True,
                 }
             }
-    cherrypy.quickstart(ExpensesService(), '/', conf)
+
+    webapp = Service()
+    webapp.account = Account()
+    cherrypy.quickstart(webapp, '/', conf)
