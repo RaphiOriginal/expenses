@@ -8,6 +8,10 @@ def create_salt():
 def hash_password(salt, password):
     return hashlib.sha512(password.encode('utf-8') + salt.encode('utf-8')).hexdigest()
 
+@cherrypy.tools.register('on_start_resource')
+def authenticate():
+    print("I'm called now")
+
 @cherrypy.expose
 class ExpensesService(object):
     
@@ -20,6 +24,7 @@ class ExpensesService(object):
         db.add(newUser)
         return str(db.query(User).filter_by(email=email).first())
 
+    @cherrypy.tools.authenticate()
     def GET(self, email, password):
         db = cherrypy.request.db
         user = db.query(User).filter_by(email=email).first()
