@@ -1,0 +1,1 @@
+create table user(id integer primary key autoincrement, email varchar(255), salt varchar(255), password_hash varchar(255));
