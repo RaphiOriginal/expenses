@@ -20,13 +20,16 @@ class Service(object):
 @cherrypy.expose
 class Account(object):
     @cherrypy.tools.accept(media='text/plain')
-    def POST(self, email, password):
+    def PUT(self, email, password):
         db = cherrypy.request.db
-        salt = create_salt();
-        hashed_password = hash_password(salt, password)
-        newUser = User(email=email, salt=salt, password_hash=hashed_password)
-        db.add(newUser)
-        return str(db.query(User).filter_by(email=email).first())
+        exists = db.query(User).filter_by(email=email).first()
+        if exists is None:
+            salt = create_salt();
+            hashed_password = hash_password(salt, password)
+            newUser = User(email=email, salt=salt, password_hash=hashed_password)
+            db.add(newUser)
+        else:
+            raise cherrypy.HTTPError(409, 'E-Mail already exists')
 
     @cherrypy.tools.authenticate()
     def GET(self, email, password):
