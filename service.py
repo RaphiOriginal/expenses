@@ -1,15 +1,33 @@
 import cherrypy
 from lib.model.user import User
+import hashlib, uuid
 
 @cherrypy.expose
 class ExpensesService(object):
     
     @cherrypy.tools.accept(media='text/plain')
-    def GET(self):
+    def POST(self, email, password):
         db = cherrypy.request.db
-        test = User(email='bla', salt='1', password_hash='1234')
-        db.add(test)
-        return str(db.query(User).first())
+        salt = self.create_salt();
+        hashed_password = self.hash_password(salt, password)
+        newUser = User(email=email, salt=salt, password_hash=hashed_password)
+        db.add(newUser)
+        return str(db.query(User).filter_by(email=email).first())
+
+    def GET(self, email, password):
+        db = cherrypy.request.db
+        user = db.query(User).filter_by(email=email).first()
+        hashed_password = self.hash_password(user.salt, password)
+        if hashed_password == user.password_hash:
+            return "Authentificated"
+        else:
+            return "Wroooong!"
+
+    def hash_password(self, salt, password):
+        return hashlib.sha512(password.encode('utf-8') + salt.encode('utf-8')).hexdigest()
+
+    def create_salt(self):
+        return uuid.uuid4().hex
 
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
