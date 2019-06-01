@@ -1,6 +1,7 @@
 import cherrypy
 from lib.model.user import User
 import hashlib, uuid
+from cherrypy.lib import auth_basic
 
 def create_salt():
     return uuid.uuid4().hex
@@ -8,9 +9,16 @@ def create_salt():
 def hash_password(salt, password):
     return hashlib.sha512(password.encode('utf-8') + salt.encode('utf-8')).hexdigest()
 
-@cherrypy.tools.register('on_start_resource')
-def authenticate():
-    print("I'm called now")
+def is_valid_password(user, password):
+    salt = user.salt
+    to_check = hash_password(salt, password)
+    return to_check == user.password_hash
+
+def checkpassword(realm, email, password):
+    cherrypy.tools.db.bind_session()
+    db = cherrypy.request.db
+    user = db.query(User).filter_by(email=email).one()
+    return is_valid_password(user, password)
 
 class Service(object):
     @cherrypy.expose
@@ -31,7 +39,6 @@ class Account(object):
         else:
             raise cherrypy.HTTPError(409, 'E-Mail already exists')
 
-    @cherrypy.tools.authenticate()
     def PUT(self, email, password, new):
         db = cherrypy.request.db
         users = db.query(User).filter_by(email=email).all()
@@ -51,15 +58,15 @@ class Account(object):
         def DELETE(self, email, password):
             db = cherrypy.request.db
             users = db.query(User).filter_by(email=email).all()
-                if len(users) == 1:
-                    user = users[0]
-                    hashed_password = hash_password(user.salt, password)
-                    if hashed_password == user.password_hash:
-                        db.delete(user)
-                    else:
-                        raise cherrypy.HTTPError(401, 'Unauthorized')
+            if len(users) == 1:
+                user = users[0]
+                hashed_password = hash_password(user.salt, password)
+                if hashed_password == user.password_hash:
+                    db.delete(user)
                 else:
-                    raise cherrypy.HTTPError(500)
+                    raise cherrypy.HTTPError(401, 'Unauthorized')
+            else:
+                raise cherrypy.HTTPError(500)
 
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
@@ -71,6 +78,9 @@ if __name__ == '__main__':
     conf = {
             '/': {
                 'tools.sessions.on': True,
+                'tools.auth_basic.on': True,
+                'tools.auth_basic.realm': 'Expenses',
+                'tools.auth_basic.checkpassword': checkpassword,
                 },
             '/account': {
                 'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
