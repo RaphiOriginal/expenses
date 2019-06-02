@@ -1,5 +1,7 @@
 import cherrypy
 from lib.model.user import User
+from lib.model.household import Household
+from lib.model.member import Member
 import hashlib, uuid
 from cherrypy.lib import auth_basic
 
