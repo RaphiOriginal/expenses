@@ -20,12 +20,16 @@ def checkpassword(realm, email, password):
     cherrypy.tools.db.bind_session()
     db = cherrypy.request.db
     user = db.query(User).filter_by(email=email).one()
-    return is_valid_password(user, password)
+    if is_valid_password(user, password):
+        cherrypy.session['user'] = user
+        return True
+    else:
+        return False
 
 class Service(object):
     @cherrypy.expose
     def index(self):
-        return "hi"
+        return "hi " + str(cherrypy.session['user'])
 
 @cherrypy.expose
 class AccountService(object):
