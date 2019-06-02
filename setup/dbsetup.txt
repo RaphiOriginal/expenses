@@ -1,2 +1,3 @@
 create table user(id integer primary key autoincrement, email varchar(255), salt varchar(255), password_hash varchar(255));
 create table household(id integer primary key autoincrement, name varchar(255));
+create table member(id integer primary key autoincrement, household_id integer, name varchar(255), FOREIGN KEY(household_id) REFERENCES household(id));
