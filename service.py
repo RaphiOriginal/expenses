@@ -85,7 +85,12 @@ class HouseholdService(object):
         user = cherrypy.session['user']
         if user is None:
             raise cherrypy.HTTPError(401, 'Unauthorized')
-        return name
+        household = Household(name = name)
+        db.add(household)
+        db.commit()
+        access_right = AccessRight(user_id=user.id, household_id=household.id)
+        db.add(access_right)
+        return str(household)
 
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
