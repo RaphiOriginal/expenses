@@ -28,7 +28,7 @@ class Service(object):
         return "hi"
 
 @cherrypy.expose
-class Account(object):
+class AccountService(object):
     @cherrypy.tools.accept(media='text/plain')
     def POST(self, email, password):
         db = cherrypy.request.db
@@ -41,6 +41,7 @@ class Account(object):
         else:
             raise cherrypy.HTTPError(409, 'E-Mail already exists')
 
+    @cherrypy.tools.accept(media='text/plain')
     def PUT(self, email, password, new):
         db = cherrypy.request.db
         users = db.query(User).filter_by(email=email).all()
@@ -57,6 +58,7 @@ class Account(object):
         else:
             raise cherrypy.HTTPError(500)
 
+    @cherrypy.tools.accept(media='text/plain')
     def DELETE(self, email, password):
         db = cherrypy.request.db
         users = db.query(User).filter_by(email=email).all()
@@ -69,6 +71,13 @@ class Account(object):
                 raise cherrypy.HTTPError(401, 'Unauthorized')
         else:
             raise cherrypy.HTTPError(500)
+
+@cherrypy.expose
+class HouseholdService(object):
+    @cherrypy.tools.accept(media='text/plain')
+    def POST(self, name):
+        db = cherrrypy.request.db
+        return name
 
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
@@ -90,9 +99,17 @@ if __name__ == '__main__':
                 'tools.response_headers.on': True,
                 'tools.response_headers.headers': [('Content-Type', 'text/plain')],
                 'tools.db.on': True,
+                },
+            '/household': {
+                'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
+                'tools.sessions.on': True,
+                'tools.response_headers.on': True,
+                'tools.response_headers.headers': [('Content-Type', 'text/plain')],
+                'tools.db.on': True,
                 }
             }
 
     webapp = Service()
-    webapp.account = Account()
+    webapp.account = AccountService()
+    webapp.household = HouseholdService()
     cherrypy.quickstart(webapp, '/', conf)
