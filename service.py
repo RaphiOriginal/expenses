@@ -92,6 +92,18 @@ class HouseholdService(object):
         db.add(access_right)
         return str(household)
 
+    @cherrypy.tools.accept(media='text/plain')
+    def GET(self, id):
+        db = cherrypy.request.db
+        user = cherrypy.session['user']
+        if user is None:
+            raise cherrypy.HTTPError(401, 'Unauthorized')
+        accessright = db.query(AccessRight).filter(AccessRight.user_id == user.id).filter(AccessRight.household_id == id).one()
+        if accessright is None:
+            raise cherrypy.HTTPError(401, 'Unauthorized')
+        household = db.query(Household).filter_by(id=id).one()
+        return str(household)
+
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
     SAEnginePlugin(cherrypy.engine, 'sqlite:///database.sqlite').subscribe()
