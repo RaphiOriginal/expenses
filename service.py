@@ -80,7 +80,10 @@ class AccountService(object):
 class HouseholdService(object):
     @cherrypy.tools.accept(media='text/plain')
     def POST(self, name):
-        db = cherrrypy.request.db
+        db = cherrypy.request.db
+        user = cherrypy.session['user']
+        if user is None:
+            raise cherrypy.HTTPError(401, 'Unauthorized')
         return name
 
 if __name__ == '__main__':
@@ -110,6 +113,9 @@ if __name__ == '__main__':
                 'tools.response_headers.on': True,
                 'tools.response_headers.headers': [('Content-Type', 'text/plain')],
                 'tools.db.on': True,
+                'tools.auth_basic.on': True,
+                'tools.auth_basic.realm': 'Household',
+                'tools.auth_basic.checkpassword': checkpassword,
                 }
             }
 
