@@ -57,18 +57,18 @@ class Account(object):
         else:
             raise cherrypy.HTTPError(500)
 
-        def DELETE(self, email, password):
-            db = cherrypy.request.db
-            users = db.query(User).filter_by(email=email).all()
-            if len(users) == 1:
-                user = users[0]
-                hashed_password = hash_password(user.salt, password)
-                if hashed_password == user.password_hash:
-                    db.delete(user)
-                else:
-                    raise cherrypy.HTTPError(401, 'Unauthorized')
+    def DELETE(self, email, password):
+        db = cherrypy.request.db
+        users = db.query(User).filter_by(email=email).all()
+        if len(users) == 1:
+            user = users[0]
+            hashed_password = hash_password(user.salt, password)
+            if hashed_password == user.password_hash:
+                db.delete(user)
             else:
-                raise cherrypy.HTTPError(500)
+                raise cherrypy.HTTPError(401, 'Unauthorized')
+        else:
+            raise cherrypy.HTTPError(500)
 
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
