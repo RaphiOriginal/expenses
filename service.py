@@ -93,16 +93,28 @@ class HouseholdService(object):
         return str(household)
 
     @cherrypy.tools.accept(media='text/plain')
-    def GET(self, id):
+    def GET(self, id=None):
         db = cherrypy.request.db
         user = cherrypy.session['user']
         if user is None:
             raise cherrypy.HTTPError(401, 'Unauthorized')
-        accessright = db.query(AccessRight).filter(AccessRight.user_id == user.id).filter(AccessRight.household_id == id).one()
-        if accessright is None:
+        accessrights = db.query(AccessRight).filter(AccessRight.user_id == user.id).all()
+        print("DEBUG: Accessrights to" + str(accessrights))
+        if accessrights is None or len(accessrights) == 0:
             raise cherrypy.HTTPError(401, 'Unauthorized')
-        household = db.query(Household).filter_by(id=id).one()
-        return str(household)
+        if id is None:
+            households = []
+            for accessright in accessrights:
+                h = db.query(Household).filter(Household.id == accessright.household_id).one()
+                households.append(h)
+            return str(households)
+        else:
+            access_ids = list(map(lambda x: int(x.household_id), accessrights))
+            if int(id) in access_ids:
+                household = db.query(Household).filter_by(id=id).one()
+                return str(household)
+            else:
+                raise cherrypy.HTTPError(401, 'Unauthorized')
 
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
