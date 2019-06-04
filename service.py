@@ -158,6 +158,27 @@ class MemberService(object):
         else:
             raise cherrypy.HTTPError(401, 'Unauthorized')
 
+    @cherrypy.tools.accept(media='text/plain')
+    def GET(self, id=None, household_id=None):
+        db = cherrypy.request.db
+        user = cherrypy.session['user']
+        if user is None:
+            raise cherrypy.HTTPError(401, 'Unauthorized')
+        legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
+        if id is None and household_id is None:
+            members = db.query(Member).filter(Member.household_id.in_(legal_ids)).all()
+            return str(members)
+        elif id is None and int(household_id) in legal_ids:
+            members = db.query(Member).filter(Member.household_id == household_id).all()
+            return str(members)
+        else:
+            member = db.query(Member).filter(Member.id == id).one()
+            h_id = member.household.id
+            if h_id in legal_ids:
+                return str(member)
+            else:
+                raise cherrypy.HTTPError(401, 'Unauthorized')
+
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
     SAEnginePlugin(cherrypy.engine, 'sqlite:///database.sqlite').subscribe()
