@@ -151,7 +151,7 @@ class MemberService(object):
         user = cherrypy.session['user']
         if user is None:
             raise cherrypy.HTTPError(401, 'Unauthorized')
-        legal_ids list(map(lambda x: int(x.household_id), user.accessrights))
+        legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
         if int(household_id) in legal_ids:
             member = Member(name = name, household_id = id)
             db.add(member)
