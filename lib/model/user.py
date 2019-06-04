@@ -12,7 +12,7 @@ class User(Base):
     salt = Column(String(255))
     password_hash = Column(String(255))
 
-    accessrights = relationship("AccessRight")
+    accessrights = relationship("AccessRight", back_populates='user', cascade="all, delete, delete-orphan")
 
     def __repr__(self):
         return "<User(email='%s', salt='%s', password_hash='%s')>" % (self.email, self.salt, self.password_hash)
