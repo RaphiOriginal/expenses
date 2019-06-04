@@ -9,8 +9,8 @@ class AccessRight(Base):
     user_id = Column(Integer, ForeignKey('user.id'))
     household_id = Column(Integer, ForeignKey('household.id'))
 
-    user = relationship("User", uselist=False, back_populates='accessright')
-    household = relationship("Household", uselist=False, back_populates='accessright')
+    user = relationship("User", uselist=False, back_populates='accessrights')
+    household = relationship("Household", uselist=False, back_populates='accessrights')
 
     def __repr__(self):
         return "<AccessRight(user_id='%s', household_id='%s')" % (self.user_id, self.household_id)
