@@ -156,7 +156,7 @@ class MemberService(object):
             member = Member(name = name, household_id = int(household_id))
             db.add(member)
         else:
-            raise cerrypy.HTTPError(401, 'Unauthorized')
+            raise cherrypy.HTTPError(401, 'Unauthorized')
 
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
