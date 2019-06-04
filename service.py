@@ -104,6 +104,7 @@ class HouseholdService(object):
             raise cherrypy.HTTPError(401, 'Unauthorized')
         if id is None:
             households = []
+            print("DEBUG: " + str(accessrights))
             for accessright in accessrights:
                 h = db.query(Household).filter(Household.id == accessright.household_id).one()
                 households.append(h)
@@ -148,33 +149,7 @@ if __name__ == '__main__':
     from lib.plugin.satool import SATool
     cherrypy.tools.db = SATool()
 
-    conf = {
-            '/': {
-                'tools.sessions.on': True,
-                'tools.auth_basic.on': True,
-                'tools.auth_basic.realm': 'Expenses',
-                'tools.auth_basic.checkpassword': checkpassword,
-                },
-            '/account': {
-                'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-                'tools.sessions.on': True,
-                'tools.response_headers.on': True,
-                'tools.response_headers.headers': [('Content-Type', 'text/plain')],
-                'tools.db.on': True,
-                },
-            '/household': {
-                'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-                'tools.sessions.on': True,
-                'tools.response_headers.on': True,
-                'tools.response_headers.headers': [('Content-Type', 'text/plain')],
-                'tools.db.on': True,
-                'tools.auth_basic.on': True,
-                'tools.auth_basic.realm': 'Household',
-                'tools.auth_basic.checkpassword': checkpassword,
-                }
-            }
-
     webapp = Service()
     webapp.account = AccountService()
     webapp.household = HouseholdService()
-    cherrypy.quickstart(webapp, '/', conf)
+    cherrypy.quickstart(webapp, '/', 'service.config')
