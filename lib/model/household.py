@@ -11,8 +11,8 @@ class Household(Base):
 
     name = Column(String(255))
 
-    members = relationship("Member")
-    accessrights = relationship("AccessRight")
+    members = relationship("Member", back_populates='household', cascade="all, delete, delete-orphan")
+    accessrights = relationship("AccessRight", back_populates='household', cascade="all, delete, delete-orphan")
 
     def __repr__(self):
         return "<Household(name='%s')>" % (self.name)
