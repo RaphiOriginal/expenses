@@ -142,6 +142,22 @@ class HouseholdService(object):
             household = db.query(Household).filter(Household.id == id).one()
             db.delete(household)
 
+@cherrypy.expose
+class MemberService(object):
+
+    @cherrypy.tools.accept(media='text/plain')
+    def POST(self, name, household_id):
+        db = cherrypy.request.db
+        user = cherrypy.session['user']
+        if user is None:
+            raise cherrypy.HTTPError(401, 'Unauthorized')
+        legal_ids list(map(lambda x: int(x.household_id), user.accessrights))
+        if int(household_id) in legal_ids:
+            member = Member(name = name, household_id = id)
+            db.add(member)
+        else:
+            raise cerrypy.HTTPError(401, 'Unauthorized')
+
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
     SAEnginePlugin(cherrypy.engine, 'sqlite:///database.sqlite').subscribe()
@@ -152,4 +168,5 @@ if __name__ == '__main__':
     webapp = Service()
     webapp.account = AccountService()
     webapp.household = HouseholdService()
+    webapp.member = MemberService()
     cherrypy.quickstart(webapp, '/', 'service.config')
