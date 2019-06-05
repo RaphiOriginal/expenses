@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Date, Decimal, ForeignKey
+from sqlalchemy import Column, Integer, Date, Numeric, ForeignKey
 from sqlalchemy.orm import relationship
 from base import Base
 
@@ -7,7 +7,7 @@ class Receipt(Base):
 
     id = Column(Integer, primary_key=True)
 
-    amount = Column(Decimal(7,2))
+    amount = Column(Numeric(7,2))
     date = Column(Date)
     member_id = Column(Integer, ForeignKey('member.id'))
 
