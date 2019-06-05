@@ -3,7 +3,9 @@ from lib.model.user import User
 from lib.model.household import Household
 from lib.model.member import Member
 from lib.model.accessright import AccessRight
+from lib.model.receipt import Receipt
 import hashlib, uuid
+from datetime import datetime
 from cherrypy.lib import auth_basic
 
 def create_salt():
@@ -210,7 +212,7 @@ class MemberService(object):
 @cherrypy.expose
 class ReceiptService(object):
     @cherrypy.tools.accept(media='text/plain')
-    def POST(self, amount, date, member_id):
+    def POST(self, amount, r_date, member_id):
         db = cherrypy.request.db
         user = cherrypy.session['user']
         if user is None:
@@ -218,7 +220,8 @@ class ReceiptService(object):
         legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
         member = db.query(Member).filter(Member.id == member_id).one()
         if member.household.id in legal_ids:
-            receipt = Receipt(member_id=member_id, date=date, amount=amount)
+            p_date = datetime.strptime(r_date, '%Y-%m-%d')
+            receipt = Receipt(member_id=member_id, date=p_date, amount=amount)
             db.add(receipt)
         else:
             raise cherrypy.HTTPError(401, 'Unauthorized')
