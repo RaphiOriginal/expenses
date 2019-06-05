@@ -226,6 +226,32 @@ class ReceiptService(object):
         else:
             raise cherrypy.HTTPError(401, 'Unauthorized')
 
+    @cherrypy.tools.accept(media='text/plain')
+    def GET(self, receipt_id=None, member_id=None, household_id=None):
+        db = cherrypy.request.db
+        user = cherrypy.session['user']
+        if user is None:
+            raise cherrypy.HTTPError(401, 'Unauthorized')
+        legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
+        if receipt_id is None and member_id is None and household_id is None:
+            receipts = db.query(Receipt).join(Member).filter(Member.household_id.in_(legal_ids)).all()
+            return str(receipts)
+        elif household_id is not None and int(household_id) in legal_ids:
+            receipts = db.query(Receipt).join(Member).filter(Member.household_id == household_id).all()
+            return str(receipts)
+        elif member_id is not None:
+            member = db.query(Member).filter(Member.id == member_id).one()
+            if member.household_id in legal_ids:
+                return str(member.receipts)
+            else:
+                raise cherrypy.HTTPException(401, 'Unauthorized')
+        else:
+            receipt = db.query(Receipt).filter(Receipt.id == receipt_id).one()
+            if receipt.member.household_id in legal_ids:
+                return str(receipt)
+            else:
+                raise cherrypy.HTTPException(401, 'Unautorized')
+
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
     SAEnginePlugin(cherrypy.engine, 'sqlite:///database.sqlite').subscribe()
