@@ -2,3 +2,4 @@ create table user(id integer primary key autoincrement, email varchar(255), salt
 create table household(id integer primary key autoincrement, name varchar(255));
 create table member(id integer primary key autoincrement, household_id integer, name varchar(255), FOREIGN KEY(household_id) REFERENCES household(id));
 create table accessright(id integer primary key autoincrement, user_id integer, household_id integer, foreign key(user_id) references user(id), foreign key(household_id) references household(id));
+create table receipt(id integer primary key autoincrement, member_id integer, amount decimal(7,2), date date, foreign key(member_id) references member(id));
