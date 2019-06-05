@@ -207,6 +207,22 @@ class MemberService(object):
         else:
             raise cherrypy.HTTPError(401, 'Unauthorized')
 
+@cherrypy.expose
+class ReceiptService(object):
+    @cherrypy.tools.accept(media='text/plain')
+    def POST(self, amount, date, member_id):
+        db = cherrypy.request.db
+        user = cherrypy.session['user']
+        if user is None:
+            raise cherrypy.HTTPError(401, 'Unautorized')
+        legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
+        member = db.query(Member).filter(Member.id == member_id).one()
+        if member.household.id in legal_ids:
+            receipt = Receipt(member_id=member_id, date=date, amount=amount)
+            db.add(receipt)
+        else:
+            raise cherrypy.HTTPError(401, 'Unauthorized')
+
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
     SAEnginePlugin(cherrypy.engine, 'sqlite:///database.sqlite').subscribe()
@@ -218,4 +234,5 @@ if __name__ == '__main__':
     webapp.account = AccountService()
     webapp.household = HouseholdService()
     webapp.member = MemberService()
+    webapp.receipt = ReceiptService()
     cherrypy.quickstart(webapp, '/', 'service.config')
