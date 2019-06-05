@@ -250,7 +250,23 @@ class ReceiptService(object):
             if receipt.member.household_id in legal_ids:
                 return str(receipt)
             else:
-                raise cherrypy.HTTPException(401, 'Unautorized')
+                raise cherrypy.HTTPException(401, 'Unauthorized')
+
+    @cherrypy.tools.accept(media='text/plain')
+    def PUT(self, id, date, amount):
+        db = cherrypy.request.db
+        user = cherrypy.session['user']
+        if user is None:
+            raise cherrypy.HTTPError(401, 'Unauthorized')
+        legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
+        receipt = db.query(Receipt).filter(Receipt.id == id).one()
+        if receipt.member.household_id in legal_ids:
+            p_date = datetime.strptime(date, '%Y-%m-%d')
+            receipt.date = p_date
+            receipt.amount = amount
+        else:
+            raise cherrypy.HTTPError(401, 'Unauthorized')
+
 
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
