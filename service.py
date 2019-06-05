@@ -267,6 +267,18 @@ class ReceiptService(object):
         else:
             raise cherrypy.HTTPError(401, 'Unauthorized')
 
+    cherrypy.tools.accept(media='text/plain')
+    def DELETE(self, id):
+        db = cherrypy.request.db
+        user = cherrypy.session['user']
+        if user is None:
+            raise cherrypy.HTTPError(401, 'Unauthorized')
+        legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
+        receipt = db.query(Receipt).filter(Receipt.id == id).one()
+        if receipt.member.household_id in legal_ids:
+            db.delete(receipt)
+        else:
+            raise cherrypy.HTTPError(401, 'Unauthorized')
 
 if __name__ == '__main__':
     from lib.plugin.saplugin import SAEnginePlugin
