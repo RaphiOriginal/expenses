@@ -11,6 +11,7 @@ class Member(Base):
     household_id = Column(Integer, ForeignKey('household.id'))
 
     household = relationship("Household", uselist=False, back_populates='members')
+    receipts = relationship("Receipt", back_populates='member')
 
     def __repr__(self):
         return "<Member(name='%s')>" % self.name
