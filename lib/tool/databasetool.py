@@ -2,6 +2,7 @@ import cherrypy
 from lib.model.user import User
 from lib.model.member import Member
 from lib.model.household import Household
+from lib.model.receipt import Receipt
 
 def db():
     return cherrypy.request.db
