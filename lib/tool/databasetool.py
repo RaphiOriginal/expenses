@@ -1,5 +1,6 @@
 import cherrypy
 from lib.model.user import User
+from lib.model.member import Member
 from lib.model.household import Household
 
 def db():
@@ -22,3 +23,12 @@ def findUsersByEmail(email):
 
 def findHouseholdById(id):
     return db().query(Household).filter(Household.id == id).one()
+
+def findMembersByHouseholdIds(ids):
+    return db().query(Member).filter(Member.household_id.in_(ids)).all()
+
+def findMemberById(id):
+    return db().query(Member).filter(Member.id == id).one()
+
+def findMembersByHouseholdId(id):
+    return db().query(Member).filter(Member.household_id == id).all()
