@@ -1,12 +1,15 @@
 import cherrypy
+from lib.tool.databasetool import userExists
 from lib.model.user import User
+from lib.tool.passwordtool import create_salt
+from lib.tool.passwordtool import hash_password
 
 @cherrypy.expose
 class AccountService(object):
     @cherrypy.tools.accept(media='text/plain')
     def POST(self, email, password):
         db = cherrypy.request.db
-        exists = db.query(User).filter_by(email=email).first()
+        exists = userExists(email)
         if exists is None:
             salt = create_salt();
             hashed_password = hash_password(salt, password)
