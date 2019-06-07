@@ -2,14 +2,13 @@ import cherrypy
 from lib.model.household import Household
 from lib.model.accessright import AccessRight
 from lib.tool.databasetool import add, commit, delete, findHouseholdById
+from lib.tool.authorizationtool import getAuthorizedHouseholdIds, authorize
 
 @cherrypy.expose
 class HouseholdService(object):
     @cherrypy.tools.accept(media='text/plain')
     def POST(self, name):
-        user = cherrypy.session['user']
-        if user is None:
-            raise cherrypy.HTTPError(401, 'Unauthorized')
+        user = authorize()
         household = Household(name = name)
         add(household)
         commit()
@@ -19,9 +18,7 @@ class HouseholdService(object):
 
     @cherrypy.tools.accept(media='text/plain')
     def GET(self, id=None):
-        user = cherrypy.session['user']
-        if user is None:
-            raise cherrypy.HTTPError(401, 'Unauthorized')
+        user = authorize()
         accessrights = user.accessrights
         print("DEBUG: Accessrights to" + str(accessrights))
         if accessrights is None or len(accessrights) == 0:
@@ -43,10 +40,8 @@ class HouseholdService(object):
 
     @cherrypy.tools.accept(media='text/plain')
     def PUT(self, id, name):
-        user = cherrypy.session['user']
-        if user is None:
-            raise cherrypy.HTTPError(401, 'Unauthorized')
-        legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
+        user = authorize()
+        legal_ids = getAuthorizedHouseholdIds()
         print("DEBUG: " + str(legal_ids))
         if int(id) in legal_ids:
             household = findHouseholdById(id)
@@ -56,10 +51,8 @@ class HouseholdService(object):
 
     @cherrypy.tools.accept(media='text/plain')
     def DELETE(self, id):
-        user = cherrypy.session['user']
-        if user is None:
-            raise cherrypy.HTTPError(401, 'Unauthorized')
-        legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
+        user = authorize()
+        legal_ids = getAuthorizedHouseholdIds()
         if int(id) in legal_ids:
             household = findHouseholdById(id)
             delete(household)

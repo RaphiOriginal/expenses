@@ -2,15 +2,13 @@ import cherrypy
 from lib.model.receipt import Receipt
 from lib.model.member import Member
 from lib.tool.databasetool import add, delete, findReceiptsByHouseholdIds, findReceiptsByHouseholdId, findReceiptById, findMemberById
+from lib.tool.authorizationtool import getAuthorizedHouseholdIds
 
 @cherrypy.expose
 class ReceiptService(object):
     @cherrypy.tools.accept(media='text/plain')
     def POST(self, amount, r_date, member_id):
-        user = cherrypy.session['user']
-        if user is None:
-            raise cherrypy.HTTPError(401, 'Unautorized')
-        legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
+        legal_ids = getAuthorizedHouseholdIds()
         member = findMemberById(member_id)
         if member.household.id in legal_ids:
             p_date = datetime.strptime(r_date, '%Y-%m-%d')
@@ -21,10 +19,7 @@ class ReceiptService(object):
 
     @cherrypy.tools.accept(media='text/plain')
     def GET(self, receipt_id=None, member_id=None, household_id=None):
-        user = cherrypy.session['user']
-        if user is None:
-            raise cherrypy.HTTPError(401, 'Unauthorized')
-        legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
+        legal_ids = getAuthorizedHouseholdIds()
         if receipt_id is None and member_id is None and household_id is None:
             receipts = findReceiptsByHouseholdIds(legal_ids)
             return str(receipts)
@@ -46,10 +41,7 @@ class ReceiptService(object):
 
     @cherrypy.tools.accept(media='text/plain')
     def PUT(self, id, date, amount):
-        user = cherrypy.session['user']
-        if user is None:
-            raise cherrypy.HTTPError(401, 'Unauthorized')
-        legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
+        legal_ids = getAuthorizedHouseholdIds()
         receipt = findReceiptById(id)
         if receipt.member.household_id in legal_ids:
             p_date = datetime.strptime(date, '%Y-%m-%d')
@@ -60,10 +52,7 @@ class ReceiptService(object):
 
     cherrypy.tools.accept(media='text/plain')
     def DELETE(self, id):
-        user = cherrypy.session['user']
-        if user is None:
-            raise cherrypy.HTTPError(401, 'Unauthorized')
-        legal_ids = list(map(lambda x: int(x.household_id), user.accessrights))
+        legal_ids = getAuthorizedHouseholdIds()
         receipt = findReceiptById(id)
         if receipt.member.household_id in legal_ids:
             delete(receipt)
