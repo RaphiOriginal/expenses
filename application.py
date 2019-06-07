@@ -5,7 +5,7 @@ from lib.service.memberservice import MemberService
 from lib.service.householdservice import HouseholdService
 from lib.service.accountservice import AccountService
 
-class Service(object):
+class Application(object):
     @cherrypy.expose
     def index(self):
         return "hi " + str(cherrypy.session['user'])
@@ -17,9 +17,9 @@ if __name__ == '__main__':
     from lib.plugin.satool import SATool
     cherrypy.tools.db = SATool()
 
-    webapp = Service()
+    webapp = Application()
     webapp.account = AccountService()
     webapp.household = HouseholdService()
     webapp.member = MemberService()
     webapp.receipt = ReceiptService()
-    cherrypy.quickstart(webapp, '/', 'service.config')
+    cherrypy.quickstart(webapp, '/', 'application.config')
